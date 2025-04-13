@@ -3,18 +3,24 @@ document.getElementById('chatFile').addEventListener('change', function(e) {
   if (!file) return;
 
   if (file.name.endsWith('.zip')) {
+    // Handle zip file
     const zip = new JSZip();
     zip.loadAsync(file).then(function(contents) {
-      for (let filename in contents.files) {
-        if (filename.endsWith('.txt')) {
-          zip.file(filename).async('string').then(function(text) {
+      let found = false;
+      contents.forEach((relativePath, zipEntry) => {
+        if (zipEntry.name.endsWith('.txt') && !found) {
+          found = true;
+          zipEntry.async("string").then(function(text) {
             parseChat(text);
           });
-          break;
         }
-      }
+      });
+    }).catch(err => {
+      alert("Invalid zip file");
     });
+
   } else if (file.name.endsWith('.txt')) {
+    // Handle txt file
     const reader = new FileReader();
     reader.onload = function(e) {
       parseChat(e.target.result);
